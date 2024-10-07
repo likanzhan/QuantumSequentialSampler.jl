@@ -1,6 +1,7 @@
 using Distributions
 
 """
+  BayesianSamplerLikelihood(Parameters, ObservedPercentage; ListCFDF = [11:18; 23:30; 35:42; 47:54; 59:66; 71:78])
 
 - `N`: Sample size in the internal process.
 - `P(E)`: Subjective probability of E.
@@ -24,6 +25,9 @@ function BayesianSamplerLikelihood(Parameters, ObservedPercentage; ListCFDF = [1
   return LL
 end
 
+"""
+  LogLikelihood(SampleSize, ParameterBeta, ObservedProb, PredictedProb)
+"""
 function LogLikelihood(SampleSize, ParameterBeta, ObservedProb, PredictedProb)
   Likelihood = 0
   for SE in 0:SampleSize
@@ -40,7 +44,6 @@ function LogLikelihood(SampleSize, ParameterBeta, ObservedProb, PredictedProb)
   return -2 * log(Likelihood)
 end
 
-#######################################################
 """
   CalculateBayesianProbabilities(parm)
 
