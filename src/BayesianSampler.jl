@@ -1,23 +1,19 @@
 using Distributions
 
 """
-  BayesianSamplerLikelihood(Parameters, ObservedPercentage; ListCFDF = [11:18; 23:30; 35:42; 47:54; 59:66; 71:78])
+  BayesianSamplerLikelihood(Parameters, ObservedData)
 
-- `N`: Sample size in the internal process.
-- `P(E)`: Subjective probability of E.
-- `S(E) ~ Bin(N, P(E))`
-- `F(E) = N - S(E)`
-- `P(x|S(E)) ~ Beta(beta + S(E), beta + F(E))`.
+Use 9 `Parameters` to calculate the sumed loglikelihood for the `ObservedData`.
 
 """
-function BayesianSamplerLikelihood(Parameters, ObservedPercentage; ListCFDF = [11:18; 23:30; 35:42; 47:54; 59:66; 71:78])
+function BayesianSamplerLikelihood(Parameters, ObservedData; ListCFDF = [11:18; 23:30; 35:42; 47:54; 59:66; 71:78])
   PredictedProb = CalculateBayesianProbabilities(Parameters[1:6])
   ParameterBeta = Parameters[7]
   N2 = 1  + round(Int, Parameters[9], RoundNearestTiesUp) # conjunctions/disjunctions
   N1 = N2 + round(Int, Parameters[8], RoundNearestTiesUp) # marginals/conditionals
-  length(ObservedPercentage) == length(PredictedProb) || error("Length mismatch")
+  length(ObservedData) == length(PredictedProb) || error("Length mismatch")
   LL = 0
-  for (ObservedIndex, ObservedValue) in enumerate(ObservedPercentage)
+  for (ObservedIndex, ObservedValue) in enumerate(ObservedData)
     ObservedProb = (ObservedValue == 0) ? 0.005 : (ObservedValue == 100) ? 0.995 : (ObservedValue / 100) # Proportion to percentage
     SampleSize = ObservedIndex ∈ ListCFDF ? N2 : N1
     LL += LogLikelihood(SampleSize, ParameterBeta, ObservedProb, PredictedProb[ObservedIndex])
@@ -27,6 +23,14 @@ end
 
 """
   LogLikelihood(SampleSize, ParameterBeta, ObservedProb, PredictedProb)
+
+Use four parameters `SampleSize`, `ParameterBeta`, `ObservedProb`, and `PredictedProb` to calculate the Loglikelihood.
+The calculation is based on the following assumptions:
+- `N`: Sample size in the internal process.
+- `P(E)`: Subjective probability of E.
+- `S(E) ~ Bin(N, P(E))`
+- `F(E) = N - S(E)`
+- `P(x|S(E)) ~ Beta(beta + S(E), beta + F(E))`.
 """
 function LogLikelihood(SampleSize, ParameterBeta, ObservedProb, PredictedProb)
   Likelihood = 0
@@ -45,11 +49,11 @@ function LogLikelihood(SampleSize, ParameterBeta, ObservedProb, PredictedProb)
 end
 
 """
-  CalculateBayesianProbabilities(parm)
+  CalculateBayesianPredictions(parm)
 
-Use six probabilities to calculate 78 other probabilites.
+Use six probabilities to predict the 78 probabilites.
 """
-function CalculateBayesianProbabilities(parm)
+function CalculateBayesianPredictions(parm)
 
   # true probabilities
   # A = A1,  B = A2,  C = A3
